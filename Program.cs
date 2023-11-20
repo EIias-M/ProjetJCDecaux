@@ -51,7 +51,6 @@ namespace ProjetLab
                 foreach (var station in stations)
                 {
                     double test = s1.position.getDistance(station.position);
-                    Console.WriteLine(station.totalStands.availabilities.bikes);
                     if (!s1.Equals(station)&& test < distance && station.nbBikes()!=0)
                     {
                         distance = test;
@@ -121,6 +120,8 @@ namespace ProjetLab
     {
         public Availabilities availabilities { get; set; }
 
+        public int capacity { get; set; }
+
     }
 
     public class Station
@@ -140,8 +141,10 @@ namespace ProjetLab
             result += $"number:" + number + "\n";
             result += $"contractName: " + contractName + "\n";
             result += $"name: " + name + "\n";
-            result += "position: " + position + "\n";
-            result += nbBikes() + "\n";
+            result += $"position: " + position + "\n";
+            result += $"Capacité Max : " + totalStands.capacity+"\n";
+            result += $"Nombre de vélo disponible : " + totalStands.availabilities.bikes + "\n";
+            result += $"Places libres :"+nbBikes() + "\n";
             return result;
         }
 
@@ -155,7 +158,8 @@ namespace ProjetLab
 
         public int nbBikes()
         {
-            return totalStands.availabilities.bikes;
+            
+            return totalStands.capacity-totalStands.availabilities.bikes;
         }
     }
 
