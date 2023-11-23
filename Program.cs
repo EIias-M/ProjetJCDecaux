@@ -4,6 +4,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
+using System.Text;
 
 namespace ProjetLab
 {
@@ -19,6 +23,31 @@ namespace ProjetLab
             return responseBody;
         }
 
+
+        public static async Task<double> getJsonOpenStreet(Position p1, Position p2,String type)
+        {
+            var baseAddress = new Uri("https://api.openrouteservice.org");
+            using (var httpClient = new HttpClient { BaseAddress = baseAddress })
+            {
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json");
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a");
+                string formattedP1Lo = p1.longitude.ToString().Replace(',', '.');
+                string formattedP1La = p1.latitude.ToString().Replace(',', '.');
+                string formattedP2Lo = p2.longitude.ToString().Replace(',', '.');
+                string formattedP2La = p2.latitude.ToString().Replace(',', '.');
+
+                using (var content = new StringContent("{\"locations\":[[" + formattedP1Lo + "," + formattedP1La + "],[" + formattedP2Lo + "," + formattedP2La + "]],\"metrics\":[\"distance\"]}", Encoding.UTF8, "application/json"))
+                {
+                    using (var response = await httpClient.PostAsync("/v2/matrix/" + type, content))
+                    {
+                        string responseData = await response.Content.ReadAsStringAsync();
+                        double result = JsonSerializer.Deserialize<OpenRouteServiceResponse>(responseData).distances[0][1];
+                        return result;
+                    }
+                }
+            }
+        }
         static async Task Main()
         {
             try
@@ -44,27 +73,32 @@ namespace ProjetLab
                 String nbstat = Console.ReadLine();
                 reponse = await getJSON("https://api.jcdecaux.com/vls/v3/stations/" + nbstat + "?contract=" + result + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
                 Station s1 = JsonSerializer.Deserialize<Station>(reponse);
-                Console.WriteLine(s1);
                 double distance = s1.position.getDistance(stations[0].position);
                 Station stat = null;
+                double diswalking, disRiding=0;
 
                 foreach (var station in stations)
                 {
                     double test = s1.position.getDistance(station.position);
                     if (!s1.Equals(station)&& test < distance && station.nbBikes()!=0)
-                    {
-                        distance = test;
-                        stat = station;
+                    { 
+                         diswalking= await getJsonOpenStreet(s1.position, station.position, "foot-walking");
+                         disRiding = await getJsonOpenStreet(s1.position, station.position, "cycling-regular");
+                   
+                        if (diswalking < disRiding)
+                        {
+                            distance = test;
+                            stat = station;
+                        }
+
+                      
                     }
 
                 }
                 Console.WriteLine(distance);
                 Console.WriteLine(stat);
+                Console.WriteLine(disRiding);
                 Console.ReadLine();
-
-
-
-
 
             }
             catch (HttpRequestException e)
@@ -73,6 +107,13 @@ namespace ProjetLab
                 Console.WriteLine("Message :{0} ", e.Message);
             }
         }
+    }
+
+    public class OpenRouteServiceResponse
+    {
+        public List<List<double>> distances { get; set; }
+        public List<Dictionary<string, object>> destinations { get; set; }
+        public List<Dictionary<string, object>> sources { get; set; }
     }
 
     public class Contract
