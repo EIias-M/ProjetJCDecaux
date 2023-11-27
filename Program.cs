@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace ProjetLab
 {
@@ -32,17 +34,17 @@ namespace ProjetLab
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json");
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a");
-                string formattedP1Lo = p1.longitude.ToString().Replace(',', '.');
-                string formattedP1La = p1.latitude.ToString().Replace(',', '.');
-                string formattedP2Lo = p2.longitude.ToString().Replace(',', '.');
-                string formattedP2La = p2.latitude.ToString().Replace(',', '.');
+                string formattedP1Lo = Position.format(p1.longitude);
+                string formattedP1La = Position.format(p1.latitude);
+                string formattedP2Lo = Position.format(p2.longitude);
+                string formattedP2La = Position.format(p2.latitude);
 
                 using (var content = new StringContent("{\"locations\":[[" + formattedP1Lo + "," + formattedP1La + "],[" + formattedP2Lo + "," + formattedP2La + "]],\"metrics\":[\"distance\"]}", Encoding.UTF8, "application/json"))
                 {
                     using (var response = await httpClient.PostAsync("/v2/matrix/" + type, content))
                     {
                         string responseData = await response.Content.ReadAsStringAsync();
-                        double result = JsonSerializer.Deserialize<OpenRouteServiceResponse>(responseData).distances[0][1];
+                        double result = System.Text.Json.JsonSerializer.Deserialize<OpenRouteServiceResponse>(responseData).distances[0][1];
                         return result;
                     }
                 }
@@ -53,7 +55,7 @@ namespace ProjetLab
             try
             {
                 String reponse = await getJSON("https://api.jcdecaux.com/vls/v3/contracts?apiKey=468da863308d1676f7ad103e93c424c778269301");
-                List<Contract> contracts = JsonSerializer.Deserialize<List<Contract>>(reponse);
+                List<Contract> contracts = System.Text.Json.JsonSerializer.Deserialize<List<Contract>>(reponse);
                 foreach (var contract in contracts)
                 {
                     Console.WriteLine(contract);
@@ -63,7 +65,7 @@ namespace ProjetLab
                 Console.WriteLine("Choose one contract");
                 String result = Console.ReadLine();
                 reponse = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + result + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
-                List<Station> stations = JsonSerializer.Deserialize<List<Station>>(reponse);
+                List<Station> stations = System.Text.Json.JsonSerializer.Deserialize<List<Station>>(reponse);
                 foreach (var station in stations)
                 {
                     Console.WriteLine(station);
@@ -72,7 +74,7 @@ namespace ProjetLab
                 Console.WriteLine("Choose one station");
                 String nbstat = Console.ReadLine();
                 reponse = await getJSON("https://api.jcdecaux.com/vls/v3/stations/" + nbstat + "?contract=" + result + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
-                Station s1 = JsonSerializer.Deserialize<Station>(reponse);
+                Station s1 = System.Text.Json.JsonSerializer.Deserialize<Station>(reponse);
                 double distance = s1.position.getDistance(stations[0].position);
                 Station stat = null;
                 double diswalking, disRiding=0;
@@ -98,7 +100,27 @@ namespace ProjetLab
                 Console.WriteLine(distance);
                 Console.WriteLine(stat);
                 Console.WriteLine(disRiding);
-                Console.ReadLine();
+                string formattedS1Lo = Position.format(s1.position.longitude);
+                string formatteds1La = Position.format(s1.position.latitude);
+                string formatteds2Lo = Position.format(stat.position.longitude);
+                string formatteds2La = Position.format(stat.position.latitude);
+                var baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a&start=" + formattedS1Lo+","+formatteds1La+"&end="+formatteds2Lo+","+formatteds2La);
+                using (var httpClient = new HttpClient { BaseAddress = baseAddress })
+                {
+
+                    httpClient.DefaultRequestHeaders.Clear();
+                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8");
+                    using ( var response = await httpClient.GetAsync(baseAddress))
+                    {
+                        
+                        string responseData = await response.Content.ReadAsStringAsync();
+                        var data = JsonConvert.DeserializeObject(responseData);
+                        Console.WriteLine(data);
+                        Console.ReadLine();
+
+                    }
+                }
+
 
             }
             catch (HttpRequestException e)
@@ -223,6 +245,11 @@ namespace ProjetLab
             GeoCoordinate g1 = new GeoCoordinate(latitude, longitude);
             GeoCoordinate g2 = new GeoCoordinate(other.latitude, other.longitude);
             return g1.GetDistanceTo(g2);
+        }
+
+        public static string format(double pos)
+        {
+            return pos.ToString().Replace(',', '.');
         }
     }
 }

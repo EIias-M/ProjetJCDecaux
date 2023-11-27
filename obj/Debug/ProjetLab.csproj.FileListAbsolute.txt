@@ -17,3 +17,5 @@ C:\Users\elias\source\repos\ProjetLab\bin\Debug\Microsoft.Bcl.AsyncInterfaces.dl
 C:\Users\elias\source\repos\ProjetLab\obj\Debug\ProjetLab.csproj.CopyComplete
 C:\Users\elias\source\repos\ProjetLab\obj\Debug\ProjetLab.exe
 C:\Users\elias\source\repos\ProjetLab\obj\Debug\ProjetLab.pdb
+C:\Users\elias\source\repos\ProjetLab\bin\Debug\Newtonsoft.Json.dll
+C:\Users\elias\source\repos\ProjetLab\bin\Debug\Newtonsoft.Json.xml
