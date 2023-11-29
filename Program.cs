@@ -10,6 +10,8 @@ using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using System.Text;
 using Newtonsoft.Json;
+using System.Security.Policy;
+using static System.Collections.Specialized.BitVector32;
 
 namespace ProjetLab
 {
@@ -50,76 +52,177 @@ namespace ProjetLab
                 }
             }
         }
+
+        public static async Task<Results> getGeometry(String param,List<Contract> contracts)
+        {
+            HttpResponseMessage responseOrigine = await client.GetAsync(($"https://api.opencagedata.com/geocode/v1/json?q=" + param + "&key=d699e83b5f0e4357a51f1c7f676243d5&pretty=1"));
+            responseOrigine.EnsureSuccessStatusCode();
+            var originJson = responseOrigine.Content.ReadAsStringAsync().Result;
+            var root = JsonConvert.DeserializeObject<OrigineResult>(originJson);
+                     
+            foreach (var result in root.results)
+            {
+                string country=result.components.country_code.ToUpper();
+                foreach (var contract in contracts)
+                {
+                   
+                    if (country.Equals(contract.country_code))
+                    {
+                        return result;
+                    }
+                }      
+            }
+            return null;
+
+        }
+
+        public static async Task<Contract> getBestContract(Results result, List<Contract> contracts)
+        {
+            double distance = 100000000000000;
+            double tempDistance = 0;
+            Contract contratResult = null;
+            string country= result.components.country_code.ToUpper();
+            Position p1 = new Position(result.geometry.lat, result.geometry.lng);
+
+            foreach (var contract in contracts)
+            {
+                if (contract.country_code == country)
+                {
+                    HttpResponseMessage responseOrigine = await client.GetAsync(($"https://api.opencagedata.com/geocode/v1/json?q=" + contract.name + "&key=d699e83b5f0e4357a51f1c7f676243d5&pretty=1"));
+                    responseOrigine.EnsureSuccessStatusCode();
+                    var originJson = responseOrigine.Content.ReadAsStringAsync().Result;
+                    var root = JsonConvert.DeserializeObject<OrigineResult>(originJson);
+                    Position p2 = new Position(root.results[0].geometry.lat, root.results[0].geometry.lng);
+
+                    tempDistance = await getJsonOpenStreet(p1,p2, "cycling-regular");
+
+                    if (distance > tempDistance)
+                    {
+                        Console.WriteLine(contract.name + ":" + tempDistance);
+                        distance = tempDistance;
+                        contratResult = contract;
+                    }
+
+
+                }
+
+            }
+            return contratResult;
+
+        }
+
+
+      
+        public static async Task<object> getGeojson (List<Station> stations, Position p1)
+        {
+            double distance = 100000000000000;
+            double diswalking = 0;
+            double diswalkingTmp = 100000000000000;
+            double disRiding = 0;
+            Station stat = null;
+            Station secondStat = null;
+            String mode = "cycling-road";
+
+
+            foreach (var station in stations)
+            {
+                double test = p1.getDistance(station.position);                
+                if (!p1.Equals(station.position) && test < distance && station.nbBikes() != 0)
+                {
+                    diswalking = await getJsonOpenStreet(p1, station.position, "foot-walking");
+                    disRiding = await getJsonOpenStreet(p1, station.position, "cycling-regular");
+                    if (diswalking < disRiding)
+                    {
+                        distance = test;
+                        stat = station;
+                    }
+                    if (diswalking < diswalkingTmp)
+                    {
+                        diswalkingTmp = diswalking;
+                        secondStat = station;
+                    }
+                }
+            }
+            if (stat == null)
+            {
+                stat = secondStat;
+                mode = "foot-walking";
+                Console.WriteLine("Le trajet est plus rapide a pieds voici l'itinéraire à pieds");
+            }
+
+
+            string formattedS1Lo = Position.format(p1.longitude);
+            string formatteds1La = Position.format(p1.latitude);
+            string formatteds2Lo = Position.format(stat.position.longitude);
+            string formatteds2La = Position.format(stat.position.latitude);
+            var baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/"+mode+"?api_key=5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a&start=" + formattedS1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
+            using (var httpClient = new HttpClient { BaseAddress = baseAddress })
+            {
+
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8");
+                using (var response = await httpClient.GetAsync(baseAddress))
+                {
+
+                    string responseData = await response.Content.ReadAsStringAsync();
+                    var data = JsonConvert.DeserializeObject(responseData);
+                    return data;           
+                }
+            }
+        }
+
+        
         static async Task Main()
         {
             try
             {
+
                 String reponse = await getJSON("https://api.jcdecaux.com/vls/v3/contracts?apiKey=468da863308d1676f7ad103e93c424c778269301");
                 List<Contract> contracts = System.Text.Json.JsonSerializer.Deserialize<List<Contract>>(reponse);
-                foreach (var contract in contracts)
+
+                Console.Write("Entrez une adresse d'origine: ");
+                string origine = Console.ReadLine();
+                Results originGeo = await getGeometry(origine,contracts);
+                while(originGeo == null)
                 {
-                    Console.WriteLine(contract);
+                    Console.Write("Entrez une nouvelle adresse d'origine: ");
+                    origine = Console.ReadLine();
+                    originGeo= await getGeometry(origine, contracts);
                 }
 
+     
+                Console.Write("Entrez une adresse d'arrivé: ");
+                string arrival = Console.ReadLine();
+                Results arrivalGeo = await getGeometry(arrival,contracts);
+                while(arrivalGeo == null)
+                {
+                    Console.Write("Entrez une nouvelle adresse d'arrivée: ");
+                    origine = Console.ReadLine();
+                    arrivalGeo = await getGeometry(origine, contracts);
+                }
 
-                Console.WriteLine("Choose one contract");
+                Console.WriteLine("Depart : " + originGeo.geometry);
+                Console.WriteLine("Arrivé : " + arrivalGeo.geometry);
+                Console.ReadKey();
+
+
+                Contract nearOrigin=await getBestContract(originGeo,contracts);
+                Console.WriteLine(nearOrigin);
+
+
                 String result = Console.ReadLine();
-                reponse = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + result + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
+                reponse = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + nearOrigin.name + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
+
+
+
                 List<Station> stations = System.Text.Json.JsonSerializer.Deserialize<List<Station>>(reponse);
-                foreach (var station in stations)
-                {
-                    Console.WriteLine(station);
-                }
 
-                Console.WriteLine("Choose one station");
-                String nbstat = Console.ReadLine();
-                reponse = await getJSON("https://api.jcdecaux.com/vls/v3/stations/" + nbstat + "?contract=" + result + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
-                Station s1 = System.Text.Json.JsonSerializer.Deserialize<Station>(reponse);
-                double distance = s1.position.getDistance(stations[0].position);
-                Station stat = null;
-                double diswalking, disRiding=0;
+                var OriginToS1 = getGeojson(stations, new Position(originGeo.geometry.lat, originGeo.geometry.lng));
 
-                foreach (var station in stations)
-                {
-                    double test = s1.position.getDistance(station.position);
-                    if (!s1.Equals(station)&& test < distance && station.nbBikes()!=0)
-                    { 
-                         diswalking= await getJsonOpenStreet(s1.position, station.position, "foot-walking");
-                         disRiding = await getJsonOpenStreet(s1.position, station.position, "cycling-regular");
-                   
-                        if (diswalking < disRiding)
-                        {
-                            distance = test;
-                            stat = station;
-                        }
+                Console.WriteLine(OriginToS1.Result);
+                Console.ReadLine();
 
-                      
-                    }
 
-                }
-                Console.WriteLine(distance);
-                Console.WriteLine(stat);
-                Console.WriteLine(disRiding);
-                string formattedS1Lo = Position.format(s1.position.longitude);
-                string formatteds1La = Position.format(s1.position.latitude);
-                string formatteds2Lo = Position.format(stat.position.longitude);
-                string formatteds2La = Position.format(stat.position.latitude);
-                var baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/driving-car?api_key=5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a&start=" + formattedS1Lo+","+formatteds1La+"&end="+formatteds2Lo+","+formatteds2La);
-                using (var httpClient = new HttpClient { BaseAddress = baseAddress })
-                {
-
-                    httpClient.DefaultRequestHeaders.Clear();
-                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8");
-                    using ( var response = await httpClient.GetAsync(baseAddress))
-                    {
-                        
-                        string responseData = await response.Content.ReadAsStringAsync();
-                        var data = JsonConvert.DeserializeObject(responseData);
-                        Console.WriteLine(data);
-                        Console.ReadLine();
-
-                    }
-                }
 
 
             }
@@ -198,6 +301,7 @@ namespace ProjetLab
         public TotalStands totalStands { get; set; }
 
 
+
         public override string ToString()
         {
             String result = "";
@@ -231,9 +335,28 @@ namespace ProjetLab
         public double latitude { get; set; }
         public double longitude { get; set; }
 
+        public Position()
+        {
+        }
+
+        public Position(double lat, double lng)
+        {
+            try
+            {
+
+                latitude = lat;
+                longitude = lng;
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine($"Erreur de conversion en double : {ex.Message}");
+            }
+
+        }
+
         public override string ToString()
         {
-            String result = "";
+            String result ="";
             result += $"latitude:" + latitude + "\n";
             result += $"longitude: " + longitude + "\n";
             return result;
@@ -252,5 +375,50 @@ namespace ProjetLab
             return pos.ToString().Replace(',', '.');
         }
     }
+}
+
+public class geometry
+{
+    public double lat { get; set; }
+    public double lng { get; set; }
+
+    public override string ToString()
+    {
+        String result = "";
+        result += lat;
+        result += ",";
+        result += lng;
+        return result;
+    }
+
+}
+
+public class Results
+{
+    public geometry geometry { get; set; }
+
+    public Components components { get; set; }
+
+
+    public override string ToString()
+    {
+        string result = components.country_code + " "+ geometry.ToString();
+        return result;
+    }
+
+
+}
+
+public class Components
+{
+    public string country_code { get; set; }
+    public string country { get; set; }
+}
+
+
+
+public class OrigineResult
+{
+    public List<Results> results { get; set; }
 }
 
