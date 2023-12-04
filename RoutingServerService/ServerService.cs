@@ -191,7 +191,6 @@ namespace RoutingServerService
 
             Console.WriteLine("Depart : " + originGeo.geometry);
             Console.WriteLine("Arrivé : " + arrivalGeo.geometry);
-            Console.ReadKey();
 
             Contract nearOrigin = getBestContract(originGeo, contracts).Result;
 
@@ -203,9 +202,7 @@ namespace RoutingServerService
 
             Console.WriteLine(OriginToS1.Result);
 
-            return "ok";
-
-
+            return "" + OriginToS1.Result;
         }
     }
 }

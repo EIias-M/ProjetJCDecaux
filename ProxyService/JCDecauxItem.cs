@@ -38,6 +38,7 @@ namespace ProxyService
 
         public string getStations()
         {
+            Console.WriteLine("getStations");
             return allStationsOfAContract;
         }
 

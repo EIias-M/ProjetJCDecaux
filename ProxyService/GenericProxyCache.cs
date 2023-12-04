@@ -9,35 +9,47 @@ using System.Diagnostics;
 
 namespace ProxyService
 {
-    class GenericProxyCache<T>
+    public class GenericProxyCache<T>
     {
         ObjectCache cache = MemoryCache.Default;
+        DateTimeOffset dt_default = ObjectCache.InfiniteAbsoluteExpiration;
 
-        public T Get(string cacheItemName)
+        public T Get(string CacheItemName)
         {
-            if (cache.Contains(cacheItemName))
+            if (!cache.Contains(CacheItemName))
             {
-                return (T)cache[cacheItemName];
+                Console.WriteLine("cache miss");
+                CacheItemPolicy policy = new CacheItemPolicy();
+                policy.AbsoluteExpiration = dt_default;
+                T obj = (T)Activator.CreateInstance(typeof(T), CacheItemName);
+                cache.Set(CacheItemName, obj, policy);
             }
-
-            return default(T);
+            Console.WriteLine("cache hit");
+            return (T)cache.Get(CacheItemName);
         }
 
-        public T Get(string cacheItemName, double dt_seconds)
+        public T Get(string CacheItemName, double dt_seconds)
         {
-            var dtOffset = DateTimeOffset.Now.AddSeconds(dt_seconds);
-            return Get(cacheItemName, dtOffset);
-        }
-
-        public T Get(string cacheItemName, DateTimeOffset dt)
-        {
-            if (cache.Contains(cacheItemName))
+            if (!cache.Contains(CacheItemName))
             {
-                return (T)cache[cacheItemName];
+                CacheItemPolicy policy = new CacheItemPolicy();
+                policy.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(dt_seconds);
+                T obj = (T)Activator.CreateInstance(typeof(T), CacheItemName);
+                cache.Set(CacheItemName, obj, policy);
             }
-
-            return default(T);
+            return (T)cache.Get(CacheItemName);
         }
 
+        public T Get(string CacheItemName, DateTimeOffset dt)
+        {
+            if (!cache.Contains(CacheItemName))
+            {
+                CacheItemPolicy policy = new CacheItemPolicy();
+                policy.AbsoluteExpiration = dt;
+                T obj = (T)Activator.CreateInstance(typeof(T), CacheItemName);
+                cache.Set(CacheItemName, obj, policy);
+            }
+            return (T)cache.Get(CacheItemName);
+        }
     }
 }

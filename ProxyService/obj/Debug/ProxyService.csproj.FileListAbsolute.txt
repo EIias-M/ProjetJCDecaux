@@ -5,3 +5,10 @@ C:\Users\user\source\repos\ProjetBiking\ProxyService\obj\Debug\ProxyService.cspr
 C:\Users\user\source\repos\ProjetBiking\ProxyService\obj\Debug\ProxyService.csproj.CoreCompileInputs.cache
 C:\Users\user\source\repos\ProjetBiking\ProxyService\obj\Debug\ProxyService.exe
 C:\Users\user\source\repos\ProjetBiking\ProxyService\obj\Debug\ProxyService.pdb
+C:\Users\user\Documents\GitHub\ProjetJCDecaux\ProxyService\bin\Debug\ProxyService.exe.config
+C:\Users\user\Documents\GitHub\ProjetJCDecaux\ProxyService\bin\Debug\ProxyService.exe
+C:\Users\user\Documents\GitHub\ProjetJCDecaux\ProxyService\bin\Debug\ProxyService.pdb
+C:\Users\user\Documents\GitHub\ProjetJCDecaux\ProxyService\obj\Debug\ProxyService.csproj.AssemblyReference.cache
+C:\Users\user\Documents\GitHub\ProjetJCDecaux\ProxyService\obj\Debug\ProxyService.csproj.CoreCompileInputs.cache
+C:\Users\user\Documents\GitHub\ProjetJCDecaux\ProxyService\obj\Debug\ProxyService.exe
+C:\Users\user\Documents\GitHub\ProjetJCDecaux\ProxyService\obj\Debug\ProxyService.pdb
