@@ -1,0 +1,7 @@
+C:\Users\user\source\repos\ProjetBiking\ServerService\bin\Debug\ServerService.exe.config
+C:\Users\user\source\repos\ProjetBiking\ServerService\bin\Debug\ServerService.exe
+C:\Users\user\source\repos\ProjetBiking\ServerService\bin\Debug\ServerService.pdb
+C:\Users\user\source\repos\ProjetBiking\ServerService\obj\Debug\ServerService.csproj.AssemblyReference.cache
+C:\Users\user\source\repos\ProjetBiking\ServerService\obj\Debug\ServerService.csproj.CoreCompileInputs.cache
+C:\Users\user\source\repos\ProjetBiking\ServerService\obj\Debug\ServerService.exe
+C:\Users\user\source\repos\ProjetBiking\ServerService\obj\Debug\ServerService.pdb
