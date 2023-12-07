@@ -205,7 +205,7 @@ namespace RoutingServerService
 
             GeoJsonResponse itineraire = JsonConvert.DeserializeObject<GeoJsonResponse>(OriginToS1.Result.ToString());
 
-            var itineraireFinal = "";
+            var itineraireFinal = "Instructions : \n";
 
             foreach (var f in itineraire.Features)
             {

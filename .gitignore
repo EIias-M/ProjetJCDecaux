@@ -1,3 +1,43 @@
 .vs\*
 .vs/*
 *.vsidx
+
+ClientJava/target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+ClientJava/.idea/modules.xml
+ClientJava/.idea/jarRepositories.xml
+ClientJava/.idea/compiler.xml
+ClientJava/.idea/libraries/
+ClientJava/*.iws
+ClientJava/*.iml
+ClientJava/*.ipr
+
+### Eclipse ###
+ClientJava/.apt_generated
+ClientJava/.classpath
+ClientJava/.factorypath
+ClientJava/.project
+ClientJava/.settings
+ClientJava/.springBeans
+ClientJava/.sts4-cache
+
+### NetBeans ###
+ClientJava/nbproject/private/
+ClientJava/nbbuild/
+ClientJava/dist/
+ClientJava/nbdist/
+ClientJava/.nb-gradle/
+ClientJava/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+ClientJava/.vscode/
+
+### Mac OS ###
+ClientJava/.DS_Store
+ClientJava/.idea/*
