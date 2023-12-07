@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Device.Location;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Net.Http;
@@ -11,6 +12,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RoutingServerService.ServiceReference1;
+using Apache.NMS;
+using Apache.NMS.ActiveMQ;
 
 
 namespace RoutingServerService
@@ -182,6 +185,55 @@ namespace RoutingServerService
             string reponse = await proxy.getAllStationsOfAContractAsync(contract);
             List<Station> stations = System.Text.Json.JsonSerializer.Deserialize<List<Station>>(reponse);
             return stations;
+        }
+
+        private (string id, List<string> itineraire, List<List<GeoCoordinate>> points) activeMQ(List<string> itineraire, List<List<GeoCoordinate>> points)
+        {
+            try
+            {
+
+                Uri connecturi = new Uri("activemq:tcp://localhost:61616");
+                ConnectionFactory connectionFactory = new ConnectionFactory(connecturi);
+
+                // Create a single Connection from the Connection Factory.
+                IConnection connection = connectionFactory.CreateConnection();
+                connection.Start();
+
+                // Create a session from the Connection.
+                Apache.NMS.ISession session = connection.CreateSession();
+
+                //creer un nom de queue aleatoire
+                Random random = new Random();
+
+
+                int randomNumber = random.Next();
+                IDestination destination = session.GetQueue("" + randomNumber);
+
+                // Create a Producer targetting the selected queue.
+                IMessageProducer producer = session.CreateProducer(destination);
+
+                // You may configure everything to your needs, for instance:
+                producer.DeliveryMode = MsgDeliveryMode.NonPersistent;
+
+                // Finally, to send messages:
+                itineraire.Add("Fin du trajet.");
+
+                foreach (string s in itineraire)
+                {
+                    ITextMessage message = session.CreateTextMessage(s);
+                    producer.Send(message);
+                }
+
+
+                Console.WriteLine("Message sent, check ActiveMQ web interface to confirm at queue : " + randomNumber);
+
+                // Don't forget to close your session and connection when finished.
+                session.Close();
+                connection.Close();
+                return ("" + randomNumber, itineraire, points);
+            }
+            catch { return ("", itineraire, points); }
+            //retourne le nom de la queue au client
         }
 
         public string findWay(string addressStart, string addressEnd)

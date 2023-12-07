@@ -40,4 +40,6 @@ ClientJava/.vscode/
 
 ### Mac OS ###
 ClientJava/.DS_Store
+
 ClientJava/.idea/*
+packages/*
