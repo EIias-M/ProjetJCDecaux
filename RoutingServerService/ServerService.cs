@@ -19,6 +19,7 @@ namespace RoutingServerService
     {
         static readonly HttpClient client = new HttpClient();
         ProxyServiceClient proxy = new ProxyServiceClient();
+        private string API_KEY_OPEN_ROUTE = "5b3ce3597851110001cf6248ef7bd53f4e384bb1931823475d47e2ca";
 
         public async Task<string> getJSON(string url)
         {
@@ -35,7 +36,7 @@ namespace RoutingServerService
             {
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json");
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a");
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", API_KEY_OPEN_ROUTE);
                 string formattedP1Lo = Position.format(p1.longitude);
                 string formattedP1La = Position.format(p1.latitude);
                 string formattedP2Lo = Position.format(p2.longitude);
@@ -153,7 +154,7 @@ namespace RoutingServerService
             string formatteds1La = Position.format(p1.latitude);
             string formatteds2Lo = Position.format(stat.position.longitude);
             string formatteds2La = Position.format(stat.position.latitude);
-            var baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/" + mode + "?api_key=5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a&start=" + formattedS1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
+            var baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/" + mode + "?api_key="+ API_KEY_OPEN_ROUTE + "&start=" + formattedS1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
             using (var httpClient = new HttpClient { BaseAddress = baseAddress })
             {
 
@@ -200,9 +201,25 @@ namespace RoutingServerService
 
             var OriginToS1 = getGeojson(stations, new Position(originGeo.geometry.lat, originGeo.geometry.lng));
 
-            Console.WriteLine(OriginToS1.Result);
+            var S2ToArrival = getGeojson(stations, new Position(arrivalGeo.geometry.lat, arrivalGeo.geometry.lng));
 
-            return "" + OriginToS1.Result;
+            GeoJsonResponse itineraire = JsonConvert.DeserializeObject<GeoJsonResponse>(OriginToS1.Result.ToString());
+
+            var itineraireFinal = "";
+
+            foreach (var f in itineraire.Features)
+            {
+                foreach (var s in f.Properties.Segments)
+                {
+                    foreach (var st in s.Steps)
+                    {
+                        itineraireFinal += st.Instruction + "\n";
+                    }
+                }
+
+            }
+
+            return itineraireFinal;
         }
     }
 }

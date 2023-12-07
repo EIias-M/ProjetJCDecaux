@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="Contract.cs" />
     <Compile Include="IServerService.cs" />
+    <Compile Include="Itineraire.cs" />
     <Compile Include="OpenRouteService.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Program.cs" />
