@@ -19,6 +19,7 @@ namespace ProjetLab
 {
     internal class Program
     {
+
         static readonly HttpClient client = new HttpClient();
 
         public static async Task<String> getJSON(String url)
@@ -37,14 +38,11 @@ namespace ProjetLab
             {
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json");
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a");
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "5b3ce3597851110001cf624873d2c715e01e4c0fbfb738e58f9ddcf6");
                 string formattedP1Lo = Position.format(p1.longitude);
                 string formattedP1La = Position.format(p1.latitude);
                 string formattedP2Lo = Position.format(p2.longitude);
                 string formattedP2La = Position.format(p2.latitude);
-
-                Console.WriteLine(formattedP1Lo + "/" + formattedP1La + ":" + formattedP2Lo + "/" + formattedP2La);
-
                 using (var content = new StringContent("{\"locations\":[[" + formattedP1Lo + "," + formattedP1La + "],[" + formattedP2Lo + "," + formattedP2La + "]],\"metrics\":[\"distance\"]}", Encoding.UTF8, "application/json"))
                 {
                     using (var response = await httpClient.PostAsync("/v2/matrix/" + type, content))
@@ -79,54 +77,17 @@ namespace ProjetLab
 
         }
 
-    
-
-
-      
-        public static async Task<GeoJsonResponse> getGeojson (List<Station> stations, Position p1)
+        public static async Task<GeoJsonResponse> geoJsonRequest(Position p1,Position p2,string mode)
         {
-            double distance = 100000000000000;
-            double diswalking = 0;
-            double diswalkingTmp = 100000000000000;
-            double disRiding = 0;
-            Station stat = null;
-            Station secondStat = null;
-            String mode = "cycling-road";
-            foreach (var station in stations)
-            {
-                double test = p1.getDistance(station.position);                
-                if (!p1.Equals(station.position) && test < distance && station.nbBikes() != 0)
-                {
-                    diswalking = await getJsonOpenStreet(p1, station.position, "foot-walking");
-                    disRiding = await getJsonOpenStreet(p1, station.position, "cycling-regular");   
-                    if (diswalking < disRiding)
-                    {
-                        distance = test;
-                        stat = station;
-                    }
-                    if (diswalking < diswalkingTmp)
-                    {
-                        diswalkingTmp = diswalking;
-                        secondStat = station;
-                    }
-                }
-            }
-            if (stat == null)
-            {
-                stat = secondStat;
-                mode = "foot-walking";
-                Console.WriteLine("Le trajet est plus rapide a pieds voici l'itinéraire à pieds");
-            }
-
-
-            string formattedS1Lo = Position.format(p1.longitude);
+            string formatteds1Lo = Position.format(p1.longitude);
             string formatteds1La = Position.format(p1.latitude);
-            string formatteds2Lo = Position.format(stat.position.longitude);
-            string formatteds2La = Position.format(stat.position.latitude);
-            var baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/"+mode+"?api_key=5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a&start=" + formattedS1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
+            string formatteds2Lo = Position.format(p2.longitude);
+            string formatteds2La = Position.format(p2.latitude);
+            Uri baseAddress;
+            baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/"+mode+"?api_key=5b3ce3597851110001cf6248fd179c7a7660432bac775e2788a5729a&start=" + formatteds1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
+            Console.WriteLine(baseAddress);
             using (var httpClient = new HttpClient { BaseAddress = baseAddress })
             {
-
                 httpClient.DefaultRequestHeaders.Clear();
                 httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8");
                 using (var response = await httpClient.GetAsync(baseAddress))
@@ -137,6 +98,57 @@ namespace ProjetLab
 
                 }
             }
+        }
+    
+
+
+      
+        public static async Task<GeoJsonResponse> getGeojson (List<Station> stations, Position p1,Boolean originOrNot)
+        {
+            List<Station> nearStations=new List<Station>();
+
+
+            foreach (var station in stations)
+            {
+                if (!p1.Equals(station.position)  && station.nbBikes() != 0)
+                {
+                    if (nearStations.Count < 5)
+                    {
+                        nearStations.Add(station);
+                    }
+                    else
+                    {
+                        double disTMP = p1.getDistance(station.position);
+                        nearStations.Sort((s1, s2) => p1.getDistance(s1.position).CompareTo(p1.getDistance(s2.position)));
+                        if (disTMP < p1.getDistance(nearStations[4].position))
+                        {
+                            nearStations[4] = station;
+                        }
+                    }
+                }
+            }
+
+            Station stat = null;
+            double disWalking;
+            double distance = double.MaxValue;
+
+            foreach (var statTMP in nearStations) {
+                disWalking = await getJsonOpenStreet(p1, statTMP.position, "foot-walking");
+                if (disWalking < distance)
+                {
+                    distance = disWalking;
+                    stat= statTMP;
+                }
+            }
+
+            Console.WriteLine(stat);
+            if (originOrNot)
+            {
+                return await geoJsonRequest(p1, stat.position,"foot-walking");
+            }
+            return await geoJsonRequest(stat.position,p1, "foot-walking");
+
+
         }
 
         public static async Task<Contract> getBestContract(Results result, List<Contract> contracts)
@@ -160,7 +172,7 @@ namespace ProjetLab
                         var originJson = responseOrigine.Content.ReadAsStringAsync().Result;
                         var root = JsonConvert.DeserializeObject<OrigineResult>(originJson);
                         Position p2 = new Position(root.results[0].geometry.lat, root.results[0].geometry.lng);
-                        tempDistance = await getJsonOpenStreet(p1, p2, "cycling-regular");
+                        tempDistance = await getJsonOpenStreet(p1, p2, "foot-walking");
                         if (distance > tempDistance)
                         {
                             distance = tempDistance;
@@ -201,51 +213,54 @@ namespace ProjetLab
                     origine = Console.ReadLine();
                     arrivalGeo = await getGeometry(origine, contracts);
                 }
+
                 Contract nearOrigin = await getBestContract(originGeo, contracts);
                 Console.WriteLine(nearOrigin);
                 Contract nearArrival = await getBestContract(arrivalGeo, contracts);
                 Console.WriteLine(nearArrival);
 
 
-                List<Station> stations = new List<Station>();
+                List<Station> stationsOrigin = new List<Station>();
                 String res = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + nearOrigin.name + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
                 List<Station> tmp = System.Text.Json.JsonSerializer.Deserialize<List<Station>>(res);
-                stations.AddRange(tmp);
-                res = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + nearOrigin.name + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
+                stationsOrigin.AddRange(tmp);
+
+                List<Station> stationsArrival = new List<Station>();
+
+                res = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + nearArrival.name + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
                 tmp = System.Text.Json.JsonSerializer.Deserialize<List<Station>>(res);
-                stations.AddRange(tmp);
-
-
-                Console.WriteLine(stations.Count);
-
-
-
+                stationsArrival.AddRange(tmp);
 
                 Console.WriteLine("Depart : " + originGeo.geometry);
                 Console.WriteLine("Arrivé : " + arrivalGeo.geometry);
                 Console.ReadKey();
-                GeoJsonResponse OriginToS1 = await getGeojson(stations, new Position(originGeo.geometry.lat, originGeo.geometry.lng));
-                GeoJsonResponse S2ToArrival = await getGeojson(stations, new Position(arrivalGeo.geometry.lat, arrivalGeo.geometry.lng));
+                GeoJsonResponse OriginToS1 = await getGeojson(stationsOrigin, new Position(originGeo.geometry.lat, originGeo.geometry.lng),true);
+                GeoJsonResponse S2ToArrival = await getGeojson(stationsArrival, new Position(arrivalGeo.geometry.lat, arrivalGeo.geometry.lng),false);
+                Position station1= new Position(OriginToS1.bbox[1], OriginToS1.bbox[2]);
+                Position station2 = new Position(S2ToArrival.bbox[3], S2ToArrival.bbox[0]);
+                GeoJsonResponse S1toS2 = await geoJsonRequest(station1, station2, "cycling-road");
 
-                foreach (var f in OriginToS1.Features)
+                double distanceTotal = OriginToS1.GetDistance() + S1toS2.GetDistance() + S2ToArrival.GetDistance();
+
+                Position pOriginGeo = new Position(originGeo.geometry.lat, originGeo.geometry.lng);
+                Position pArrivalGeo = new Position(arrivalGeo.geometry.lat, arrivalGeo.geometry.lng);
+                GeoJsonResponse walkingOrignToArrival = await geoJsonRequest(pOriginGeo, pArrivalGeo, "foot-walking");
+
+                Console.WriteLine(distanceTotal + "/" + walkingOrignToArrival.GetDistance());
+                if (distanceTotal > walkingOrignToArrival.GetDistance())
                 {
-                    foreach (var s in f.Properties.Segments)
-                    {
-                        foreach (var st in s.Steps)
-                        {
-                            Console.WriteLine(st.Instruction);
-                        }
-                    }
-
-                    Console.WriteLine(S2ToArrival);
-
-                    Console.ReadLine();
-
-
-
-
-
+                    Console.WriteLine("Le trajet est plus simple à pieds");
+                    Console.WriteLine(walkingOrignToArrival);
                 }
+                else
+                {
+                    Console.WriteLine(OriginToS1);
+                    Console.WriteLine(S1toS2);
+                    Console.WriteLine(S2ToArrival);
+                }
+
+
+                Console.ReadLine();
             }
             catch (HttpRequestException e)
             {
@@ -446,50 +461,57 @@ public class OrigineResult
 
 public class GeoJsonResponse
 {
-    public Metadata Metadata { get; set; }
-    public List<Feature> Features { get; set; }
+    public Metadata metadata { get; set; }
+    public List<Feature> features { get; set; }
+    public List<double> bbox { get; set; }
 
+    public double GetDistance()
+    {
+        return features[0].properties.segments[0].distance;
+    }
 
 }
 
 public class Metadata
 {
-    public Query Query { get; set; }
+    public Query query { get; set; }
 
 }
 public class Query
 {
-    public List<List<double>> Coordinates { get; set; }
+    public List<List<double>> coordinates { get; set; }
 }
 
 
 public class Feature
 {
-    public Properties Properties { get; set; }
+    public Properties properties { get; set; }
 }
 
 public class Properties
 {
-    public List<Segment> Segments { get; set; }
+    public List<Segment> segments { get; set; }
 }
 
 public class Segment
 {
-    public double Distance { get; set; }
+    public double distance { get; set; }
 
-    public double Duration { get; set; }
+    public double duration { get; set; }
 
-    public List<Step> Steps { get; set; }
+    public List<Step> steps { get; set; }
+
+    
 }
 
 public class Step
 {
-    public double Distance { get; set; }
+    public double distance { get; set; }
 
-    public double Duration { get; set; }
+    public double duration { get; set; }
 
-    public string Instruction { get; set; }
-    public List<int> WayPoints { get; set; }
+    public string instruction { get; set; }
+    public List<int> wayPoints { get; set; }
 }
 
 
