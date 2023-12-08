@@ -38,6 +38,9 @@ namespace RoutingServerService
         public double lat { get; set; }
         public double lng { get; set; }
 
+        public List<List<double>> coordinates { get; set; }
+        public string type { get; set; }
+
         public override string ToString()
         {
             String result = "";

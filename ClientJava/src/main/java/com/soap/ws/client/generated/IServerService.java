@@ -28,13 +28,13 @@ public interface IServerService {
      * @param addressStart
      * @param addressEnd
      * @return
-     *     returns com.soap.ws.client.generated.ArrayOfstring
+     *     returns com.soap.ws.client.generated.ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM
      */
     @WebMethod(action = "http://tempuri.org/IServerService/findWay")
     @WebResult(name = "findWayResult", targetNamespace = "http://tempuri.org/")
     @RequestWrapper(localName = "findWay", targetNamespace = "http://tempuri.org/", className = "com.soap.ws.client.generated.FindWay")
     @ResponseWrapper(localName = "findWayResponse", targetNamespace = "http://tempuri.org/", className = "com.soap.ws.client.generated.FindWayResponse")
-    public ArrayOfstring findWay(
+    public ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM findWay(
         @WebParam(name = "addressStart", targetNamespace = "http://tempuri.org/")
         String addressStart,
         @WebParam(name = "addressEnd", targetNamespace = "http://tempuri.org/")

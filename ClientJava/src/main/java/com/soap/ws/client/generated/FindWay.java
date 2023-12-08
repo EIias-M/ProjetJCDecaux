@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
     "addressStart",
     "addressEnd"
 })
-@XmlRootElement(name = "findWay")
+@XmlRootElement(name = "findWay", namespace = "http://tempuri.org/")
 public class FindWay {
 
     @XmlElementRef(name = "addressStart", namespace = "http://tempuri.org/", type = JAXBElement.class, required = false)

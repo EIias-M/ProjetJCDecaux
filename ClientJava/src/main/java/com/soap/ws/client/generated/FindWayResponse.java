@@ -1,10 +1,9 @@
 
 package com.soap.ws.client.generated;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -19,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="findWayResult" type="{http://schemas.microsoft.com/2003/10/Serialization/Arrays}ArrayOfstring" minOccurs="0"/&gt;
+ *         &lt;element name="findWayResult" type="{http://schemas.datacontract.org/2004/07/System}ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -32,21 +31,21 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "", propOrder = {
     "findWayResult"
 })
-@XmlRootElement(name = "findWayResponse")
+@XmlRootElement(name = "findWayResponse", namespace = "http://tempuri.org/")
 public class FindWayResponse {
 
-    @XmlElementRef(name = "findWayResult", namespace = "http://tempuri.org/", type = JAXBElement.class, required = false)
-    protected JAXBElement<ArrayOfstring> findWayResult;
+    @XmlElement(namespace = "http://tempuri.org/")
+    protected ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM findWayResult;
 
     /**
      * Obtient la valeur de la propriété findWayResult.
      * 
      * @return
      *     possible object is
-     *     {@link JAXBElement }{@code <}{@link ArrayOfstring }{@code >}
+     *     {@link ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM }
      *     
      */
-    public JAXBElement<ArrayOfstring> getFindWayResult() {
+    public ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM getFindWayResult() {
         return findWayResult;
     }
 
@@ -55,10 +54,10 @@ public class FindWayResponse {
      * 
      * @param value
      *     allowed object is
-     *     {@link JAXBElement }{@code <}{@link ArrayOfstring }{@code >}
+     *     {@link ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM }
      *     
      */
-    public void setFindWayResult(JAXBElement<ArrayOfstring> value) {
+    public void setFindWayResult(ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM value) {
         this.findWayResult = value;
     }
 

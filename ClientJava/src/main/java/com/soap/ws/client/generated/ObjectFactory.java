@@ -28,7 +28,11 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
+    private final static QName _ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM_QNAME = new QName("http://schemas.datacontract.org/2004/07/System", "ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM");
     private final static QName _ArrayOfstring_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/Arrays", "ArrayOfstring");
+    private final static QName _ArrayOfArrayOfArrayOfdouble_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/Arrays", "ArrayOfArrayOfArrayOfdouble");
+    private final static QName _ArrayOfArrayOfdouble_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/Arrays", "ArrayOfArrayOfdouble");
+    private final static QName _ArrayOfdouble_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/Arrays", "ArrayOfdouble");
     private final static QName _AnyType_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/", "anyType");
     private final static QName _AnyURI_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/", "anyURI");
     private final static QName _Base64Binary_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/", "base64Binary");
@@ -52,7 +56,6 @@ public class ObjectFactory {
     private final static QName _Guid_QNAME = new QName("http://schemas.microsoft.com/2003/10/Serialization/", "guid");
     private final static QName _FindWayAddressStart_QNAME = new QName("http://tempuri.org/", "addressStart");
     private final static QName _FindWayAddressEnd_QNAME = new QName("http://tempuri.org/", "addressEnd");
-    private final static QName _FindWayResponseFindWayResult_QNAME = new QName("http://tempuri.org/", "findWayResult");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.soap.ws.client.generated
@@ -78,11 +81,56 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM }
+     * 
+     */
+    public ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM createValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM() {
+        return new ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM();
+    }
+
+    /**
      * Create an instance of {@link ArrayOfstring }
      * 
      */
     public ArrayOfstring createArrayOfstring() {
         return new ArrayOfstring();
+    }
+
+    /**
+     * Create an instance of {@link ArrayOfArrayOfArrayOfdouble }
+     * 
+     */
+    public ArrayOfArrayOfArrayOfdouble createArrayOfArrayOfArrayOfdouble() {
+        return new ArrayOfArrayOfArrayOfdouble();
+    }
+
+    /**
+     * Create an instance of {@link ArrayOfArrayOfdouble }
+     * 
+     */
+    public ArrayOfArrayOfdouble createArrayOfArrayOfdouble() {
+        return new ArrayOfArrayOfdouble();
+    }
+
+    /**
+     * Create an instance of {@link ArrayOfdouble }
+     * 
+     */
+    public ArrayOfdouble createArrayOfdouble() {
+        return new ArrayOfdouble();
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM }{@code >}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code <}{@link ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM }{@code >}
+     */
+    @XmlElementDecl(namespace = "http://schemas.datacontract.org/2004/07/System", name = "ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM")
+    public JAXBElement<ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM> createValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM(ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM value) {
+        return new JAXBElement<ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM>(_ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM_QNAME, ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM.class, null, value);
     }
 
     /**
@@ -96,6 +144,45 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays", name = "ArrayOfstring")
     public JAXBElement<ArrayOfstring> createArrayOfstring(ArrayOfstring value) {
         return new JAXBElement<ArrayOfstring>(_ArrayOfstring_QNAME, ArrayOfstring.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ArrayOfArrayOfArrayOfdouble }{@code >}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code <}{@link ArrayOfArrayOfArrayOfdouble }{@code >}
+     */
+    @XmlElementDecl(namespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays", name = "ArrayOfArrayOfArrayOfdouble")
+    public JAXBElement<ArrayOfArrayOfArrayOfdouble> createArrayOfArrayOfArrayOfdouble(ArrayOfArrayOfArrayOfdouble value) {
+        return new JAXBElement<ArrayOfArrayOfArrayOfdouble>(_ArrayOfArrayOfArrayOfdouble_QNAME, ArrayOfArrayOfArrayOfdouble.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ArrayOfArrayOfdouble }{@code >}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code <}{@link ArrayOfArrayOfdouble }{@code >}
+     */
+    @XmlElementDecl(namespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays", name = "ArrayOfArrayOfdouble")
+    public JAXBElement<ArrayOfArrayOfdouble> createArrayOfArrayOfdouble(ArrayOfArrayOfdouble value) {
+        return new JAXBElement<ArrayOfArrayOfdouble>(_ArrayOfArrayOfdouble_QNAME, ArrayOfArrayOfdouble.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ArrayOfdouble }{@code >}
+     * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code <}{@link ArrayOfdouble }{@code >}
+     */
+    @XmlElementDecl(namespace = "http://schemas.microsoft.com/2003/10/Serialization/Arrays", name = "ArrayOfdouble")
+    public JAXBElement<ArrayOfdouble> createArrayOfdouble(ArrayOfdouble value) {
+        return new JAXBElement<ArrayOfdouble>(_ArrayOfdouble_QNAME, ArrayOfdouble.class, null, value);
     }
 
     /**
@@ -395,19 +482,6 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://tempuri.org/", name = "addressEnd", scope = FindWay.class)
     public JAXBElement<String> createFindWayAddressEnd(String value) {
         return new JAXBElement<String>(_FindWayAddressEnd_QNAME, String.class, FindWay.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link ArrayOfstring }{@code >}
-     * 
-     * @param value
-     *     Java instance representing xml element's value.
-     * @return
-     *     the new instance of {@link JAXBElement }{@code <}{@link ArrayOfstring }{@code >}
-     */
-    @XmlElementDecl(namespace = "http://tempuri.org/", name = "findWayResult", scope = FindWayResponse.class)
-    public JAXBElement<ArrayOfstring> createFindWayResponseFindWayResult(ArrayOfstring value) {
-        return new JAXBElement<ArrayOfstring>(_FindWayResponseFindWayResult_QNAME, ArrayOfstring.class, FindWayResponse.class, value);
     }
 
 }

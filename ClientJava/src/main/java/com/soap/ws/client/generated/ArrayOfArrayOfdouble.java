@@ -10,16 +10,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Classe Java pour ArrayOfstring complex type.
+ * <p>Classe Java pour ArrayOfArrayOfdouble complex type.
  * 
  * <p>Le fragment de schéma suivant indique le contenu attendu figurant dans cette classe.
  * 
  * <pre>
- * &lt;complexType name="ArrayOfstring"&gt;
+ * &lt;complexType name="ArrayOfArrayOfdouble"&gt;
  *   &lt;complexContent&gt;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
  *       &lt;sequence&gt;
- *         &lt;element name="string" type="{http://www.w3.org/2001/XMLSchema}string" maxOccurs="unbounded" minOccurs="0"/&gt;
+ *         &lt;element name="ArrayOfdouble" type="{http://schemas.microsoft.com/2003/10/Serialization/Arrays}ArrayOfdouble" maxOccurs="unbounded" minOccurs="0"/&gt;
  *       &lt;/sequence&gt;
  *     &lt;/restriction&gt;
  *   &lt;/complexContent&gt;
@@ -29,41 +29,41 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ArrayOfstring", propOrder = {
-    "string"
+@XmlType(name = "ArrayOfArrayOfdouble", propOrder = {
+    "arrayOfdouble"
 })
-public class ArrayOfstring {
+public class ArrayOfArrayOfdouble {
 
-    @XmlElement(nillable = true)
-    protected List<String> string;
+    @XmlElement(name = "ArrayOfdouble", nillable = true)
+    protected List<ArrayOfdouble> arrayOfdouble;
 
     /**
-     * Gets the value of the string property.
+     * Gets the value of the arrayOfdouble property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the string property.
+     * This is why there is not a <CODE>set</CODE> method for the arrayOfdouble property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getString().add(newItem);
+     *    getArrayOfdouble().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link String }
+     * {@link ArrayOfdouble }
      * 
      * 
      */
-    public List<String> getString() {
-        if (string == null) {
-            string = new ArrayList<String>();
+    public List<ArrayOfdouble> getArrayOfdouble() {
+        if (arrayOfdouble == null) {
+            arrayOfdouble = new ArrayList<ArrayOfdouble>();
         }
-        return this.string;
+        return this.arrayOfdouble;
     }
 
 }

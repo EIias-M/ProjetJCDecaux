@@ -22,7 +22,7 @@ namespace RoutingServerService
     {
         static readonly HttpClient client = new HttpClient();
         ProxyServiceClient proxy = new ProxyServiceClient();
-        private string API_KEY_OPEN_ROUTE = "5b3ce3597851110001cf624873d2c715e01e4c0fbfb738e58f9ddcf6";
+        private string API_KEY_OPEN_ROUTE = "5b3ce3597851110001cf62480848072d18c1483bbcc351f81c4da2d1";
         private string API_KEY_OPEN_CAGE = "d699e83b5f0e4357a51f1c7f676243d5";
 
         public async Task<String> getJSON(String url)
@@ -199,7 +199,7 @@ namespace RoutingServerService
             return stations;
         }
 
-        private (string id, List<string> itineraire, List<List<GeoCoordinate>> points) activeMQ(List<string> itineraire, List<List<GeoCoordinate>> points)
+        private (string id, List<string> itineraire, List<List<List<double>>> points) activeMQ(List<string> itineraire, List<List<List<double>>> points)
         {
             try
             {
@@ -244,7 +244,11 @@ namespace RoutingServerService
                 connection.Close();
                 return ("" + randomNumber, itineraire, points);
             }
-            catch { return ("", itineraire, points); }
+            catch (Exception ex)
+            { 
+                 Console.WriteLine("An error occurred: " + ex.Message);
+                return ("", itineraire, points); 
+            }
             //retourne le nom de la queue au client
         }
 
@@ -270,7 +274,7 @@ namespace RoutingServerService
 
         }
 
-        public List<String> findWay(string addressStart, string addressEnd)
+        public (string id, List<string> itineraire, List<List<List<double>>> points) findWay(string addressStart, string addressEnd)
         {
             List<Contract> contracts =  getAllContractAsync().Result;
             Results originGeo =  getGeometry(addressStart, contracts).Result;
@@ -301,12 +305,18 @@ namespace RoutingServerService
             GeoJsonResponse walkingOrignToArrival = geoJsonRequest(pOriginGeo, pArrivalGeo, "foot-walking").Result;
 
             List<string> itineraire = new List<string>();
-
+            List<List<List<double>>> points = new List<List<List<double>>>();
+            List<List<double>> coorOrigin = OriginToS1.GetCoordinates();
+            List<List<double>> coorS1toS2 = S1toS2.GetCoordinates();
+            List<List<double>> coorS2ToArrival = S2ToArrival.GetCoordinates();
+            List<List<double>> coorWalking = walkingOrignToArrival.GetCoordinates();
 
             if (durationTotal > walkingOrignToArrival.GetDistance())
             {
                 itineraire.Add("Le trajet est plus simple à pieds \n Intructions : \n");
                 itineraire.Add(getItinairare(walkingOrignToArrival));
+
+                points.Add(coorWalking);
             }
             else
             {
@@ -317,9 +327,13 @@ namespace RoutingServerService
                 itineraire.Add(getItinairare(S1toS2));
                 itineraire.Add("- Marcher jusqu'à la destination : \n\n");
                 itineraire.Add(getItinairare(S2ToArrival));
+
+                points.Add(coorOrigin);
+                points.Add(coorS1toS2);
+                points.Add(coorS2ToArrival);
             }
 
-            return itineraire;
+            return activeMQ(itineraire,points);
         }
     }
 }

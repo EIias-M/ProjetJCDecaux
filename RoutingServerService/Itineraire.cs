@@ -22,6 +22,29 @@ namespace RoutingServerService
             return features[0].properties.segments[0].duration;
         }
 
+        public List<List<double>> GetCoordinates()
+        {
+            List<List<double>> allCoordinates = new List<List<double>>();
+
+            foreach (var feature in features)
+            {
+                if (feature.geometry != null && feature.geometry.coordinates != null)
+                {
+                    var coordinates = feature.geometry.coordinates;
+
+                    foreach (var coordinateList in coordinates)
+                    {
+                        allCoordinates.Add(new List<double>(coordinateList));
+                    }
+                }
+            }
+
+            return allCoordinates;
+        }
+
+
+
+
     }
 
     public class Metadata
@@ -38,6 +61,7 @@ namespace RoutingServerService
     public class Feature
     {
         public Properties properties { get; set; }
+        public Geometry geometry { get; set; }
     }
 
     public class Properties
