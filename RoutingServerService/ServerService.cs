@@ -22,9 +22,10 @@ namespace RoutingServerService
     {
         static readonly HttpClient client = new HttpClient();
         ProxyServiceClient proxy = new ProxyServiceClient();
-        private string API_KEY_OPEN_ROUTE = "5b3ce3597851110001cf6248ef7bd53f4e384bb1931823475d47e2ca";
+        private string API_KEY_OPEN_ROUTE = "5b3ce3597851110001cf624873d2c715e01e4c0fbfb738e58f9ddcf6";
+        private string API_KEY_OPEN_CAGE = "d699e83b5f0e4357a51f1c7f676243d5";
 
-        public async Task<string> getJSON(string url)
+        public async Task<String> getJSON(String url)
         {
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -32,7 +33,7 @@ namespace RoutingServerService
             return responseBody;
         }
 
-        public async Task<double> getJsonOpenStreet(Position p1, Position p2, string type)
+        public async Task<double> getJsonOpenStreet(Position p1, Position p2, String type)
         {
             var baseAddress = new Uri("https://api.openrouteservice.org");
             using (var httpClient = new HttpClient { BaseAddress = baseAddress })
@@ -44,7 +45,6 @@ namespace RoutingServerService
                 string formattedP1La = Position.format(p1.latitude);
                 string formattedP2Lo = Position.format(p2.longitude);
                 string formattedP2La = Position.format(p2.latitude);
-
                 using (var content = new StringContent("{\"locations\":[[" + formattedP1Lo + "," + formattedP1La + "],[" + formattedP2Lo + "," + formattedP2La + "]],\"metrics\":[\"distance\"]}", Encoding.UTF8, "application/json"))
                 {
                     using (var response = await httpClient.PostAsync("/v2/matrix/" + type, content))
@@ -57,9 +57,9 @@ namespace RoutingServerService
             }
         }
 
-        public async Task<Results> getGeometry(string param, List<Contract> contracts)
+        public async Task<Results> getGeometry(String param, List<Contract> contracts)
         {
-            HttpResponseMessage responseOrigine = await client.GetAsync(($"https://api.opencagedata.com/geocode/v1/json?q=" + param + "&key=d699e83b5f0e4357a51f1c7f676243d5&pretty=1"));
+            HttpResponseMessage responseOrigine = await client.GetAsync(($"https://api.opencagedata.com/geocode/v1/json?q=" + param + "&key=" + API_KEY_OPEN_CAGE + "&pretty=1"));
             responseOrigine.EnsureSuccessStatusCode();
             var originJson = responseOrigine.Content.ReadAsStringAsync().Result;
             var root = JsonConvert.DeserializeObject<OrigineResult>(originJson);
@@ -69,7 +69,6 @@ namespace RoutingServerService
                 string country = result.components.country_code.ToUpper();
                 foreach (var contract in contracts)
                 {
-
                     if (country.Equals(contract.country_code))
                     {
                         return result;
@@ -77,6 +76,78 @@ namespace RoutingServerService
                 }
             }
             return null;
+
+        }
+
+        public async Task<GeoJsonResponse> geoJsonRequest(Position p1, Position p2, string mode)
+        {
+            string formatteds1Lo = Position.format(p1.longitude);
+            string formatteds1La = Position.format(p1.latitude);
+            string formatteds2Lo = Position.format(p2.longitude);
+            string formatteds2La = Position.format(p2.latitude);
+            Uri baseAddress;
+            baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/" + mode + "?api_key=" + API_KEY_OPEN_ROUTE + "&start=" + formatteds1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
+            Console.WriteLine(baseAddress);
+            using (var httpClient = new HttpClient { BaseAddress = baseAddress })
+            {
+                httpClient.DefaultRequestHeaders.Clear();
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8");
+                using (var response = await httpClient.GetAsync(baseAddress))
+                {
+
+                    string responseData = await response.Content.ReadAsStringAsync();
+                    return System.Text.Json.JsonSerializer.Deserialize<GeoJsonResponse>(responseData);
+
+                }
+            }
+        }
+
+        public async Task<GeoJsonResponse> getGeojson(List<Station> stations, Position p1, Boolean originOrNot)
+        {
+            List<Station> nearStations = new List<Station>();
+
+
+            foreach (var station in stations)
+            {
+                if (!p1.Equals(station.position) && station.nbBikes() != 0)
+                {
+                    if (nearStations.Count < 5)
+                    {
+                        nearStations.Add(station);
+                    }
+                    else
+                    {
+                        double disTMP = p1.getDistance(station.position);
+                        nearStations.Sort((s1, s2) => p1.getDistance(s1.position).CompareTo(p1.getDistance(s2.position)));
+                        if (disTMP < p1.getDistance(nearStations[4].position))
+                        {
+                            nearStations[4] = station;
+                        }
+                    }
+                }
+            }
+
+            Station stat = null;
+            double disWalking;
+            double distance = double.MaxValue;
+
+            foreach (var statTMP in nearStations)
+            {
+                disWalking = await getJsonOpenStreet(p1, statTMP.position, "foot-walking");
+                if (disWalking < distance)
+                {
+                    distance = disWalking;
+                    stat = statTMP;
+                }
+            }
+
+            Console.WriteLine(stat);
+            if (originOrNot)
+            {
+                return await geoJsonRequest(p1, stat.position, "foot-walking");
+            }
+            return await geoJsonRequest(stat.position, p1, "foot-walking");
+
 
         }
 
@@ -92,85 +163,26 @@ namespace RoutingServerService
             {
                 if (contract.country_code == country)
                 {
-                    HttpResponseMessage responseOrigine = await client.GetAsync(($"https://api.opencagedata.com/geocode/v1/json?q=" + contract.name + "&key=d699e83b5f0e4357a51f1c7f676243d5&pretty=1"));
-                    responseOrigine.EnsureSuccessStatusCode();
-                    var originJson = responseOrigine.Content.ReadAsStringAsync().Result;
-                    var root = JsonConvert.DeserializeObject<OrigineResult>(originJson);
-                    Position p2 = new Position(root.results[0].geometry.lat, root.results[0].geometry.lng);
+                    String res = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + contract.name + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
+                    List<Station> tmp = System.Text.Json.JsonSerializer.Deserialize<List<Station>>(res);
 
-                    tempDistance = await getJsonOpenStreet(p1, p2, "cycling-regular");
-
-                    if (distance > tempDistance)
+                    if (tmp.Count != 0)
                     {
-                        Console.WriteLine(contract.name + ":" + tempDistance);
-                        distance = tempDistance;
-                        contratResult = contract;
+                        HttpResponseMessage responseOrigine = await client.GetAsync(($"https://api.opencagedata.com/geocode/v1/json?q=" + contract.name + "&key=" + API_KEY_OPEN_CAGE + "&pretty=1"));
+                        responseOrigine.EnsureSuccessStatusCode();
+                        var originJson = responseOrigine.Content.ReadAsStringAsync().Result;
+                        var root = JsonConvert.DeserializeObject<OrigineResult>(originJson);
+                        Position p2 = new Position(root.results[0].geometry.lat, root.results[0].geometry.lng);
+                        tempDistance = await getJsonOpenStreet(p1, p2, "foot-walking");
+                        if (distance > tempDistance)
+                        {
+                            distance = tempDistance;
+                            contratResult = contract;
+                        }
                     }
-
-
                 }
-
             }
             return contratResult;
-
-        }
-
-        public async Task<object> getGeojson(List<Station> stations, Position p1)
-        {
-            double distance = 100000000000000;
-            double diswalking = 0;
-            double diswalkingTmp = 100000000000000;
-            double disRiding = 0;
-            Station stat = null;
-            Station secondStat = null;
-            string mode = "cycling-road";
-
-
-            foreach (var station in stations)
-            {
-                double test = p1.getDistance(station.position);
-                if (!p1.Equals(station.position) && test < distance && station.nbBikes() != 0)
-                {
-                    diswalking = await getJsonOpenStreet(p1, station.position, "foot-walking");
-                    disRiding = await getJsonOpenStreet(p1, station.position, "cycling-regular");
-                    if (diswalking < disRiding)
-                    {
-                        distance = test;
-                        stat = station;
-                    }
-                    if (diswalking < diswalkingTmp)
-                    {
-                        diswalkingTmp = diswalking;
-                        secondStat = station;
-                    }
-                }
-            }
-            if (stat == null)
-            {
-                stat = secondStat;
-                mode = "foot-walking";
-                Console.WriteLine("Le trajet est plus rapide a pieds voici l'itinéraire à pieds");
-            }
-
-
-            string formattedS1Lo = Position.format(p1.longitude);
-            string formatteds1La = Position.format(p1.latitude);
-            string formatteds2Lo = Position.format(stat.position.longitude);
-            string formatteds2La = Position.format(stat.position.latitude);
-            var baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/" + mode + "?api_key="+ API_KEY_OPEN_ROUTE + "&start=" + formattedS1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
-            using (var httpClient = new HttpClient { BaseAddress = baseAddress })
-            {
-
-                httpClient.DefaultRequestHeaders.Clear();
-                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("accept", "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8");
-                using (var response = await httpClient.GetAsync(baseAddress))
-                {
-
-                    string responseData = await response.Content.ReadAsStringAsync();
-                    var data = JsonConvert.DeserializeObject(responseData);
-                    return data;
-                }
-            }
         }
 
         public async Task<List<Contract>> getAllContractAsync()
@@ -236,7 +248,29 @@ namespace RoutingServerService
             //retourne le nom de la queue au client
         }
 
-        public string findWay(string addressStart, string addressEnd)
+        public string getItinairare(GeoJsonResponse geoJson)
+        {
+           
+            var itineraireFinal = "";
+
+            foreach (var f in geoJson.features)
+            {
+                foreach (var s in f.properties.segments)
+                {
+                    foreach (var st in s.steps)
+                    {
+                        itineraireFinal += st.instruction + ", Durée : " + st.duration + ", Distance : " + st.distance + "\n";
+
+                    }
+                }
+
+            }
+
+            return itineraireFinal + "\n";
+
+        }
+
+        public List<String> findWay(string addressStart, string addressEnd)
         {
             List<Contract> contracts =  getAllContractAsync().Result;
             Results originGeo =  getGeometry(addressStart, contracts).Result;
@@ -245,33 +279,47 @@ namespace RoutingServerService
             Console.WriteLine("Depart : " + originGeo.geometry);
             Console.WriteLine("Arrivé : " + arrivalGeo.geometry);
 
-            Contract nearOrigin = getBestContract(originGeo, contracts).Result;
+            Contract nearOrigin =  getBestContract(originGeo, contracts).Result;
+            Contract nearArrival = getBestContract(arrivalGeo, contracts).Result;
 
-            Console.WriteLine(nearOrigin);
+            List<Station> stationsOrigin = getStationFromAContractAsync(nearOrigin.name).Result;
+            List<Station> stationsArrival = getStationFromAContractAsync(nearArrival.name).Result;
 
-            List<Station> stations = getStationFromAContractAsync(nearOrigin.name).Result;
+            GeoJsonResponse OriginToS1 = getGeojson(stationsOrigin, new Position(originGeo.geometry.lat, originGeo.geometry.lng), true).Result;
+            GeoJsonResponse S2ToArrival = getGeojson(stationsArrival, new Position(arrivalGeo.geometry.lat, arrivalGeo.geometry.lng), false).Result;
 
-            var OriginToS1 = getGeojson(stations, new Position(originGeo.geometry.lat, originGeo.geometry.lng));
+            Position station1 = new Position(OriginToS1.bbox[1], OriginToS1.bbox[2]);
+            Position station2 = new Position(S2ToArrival.bbox[3], S2ToArrival.bbox[0]);
 
-            var S2ToArrival = getGeojson(stations, new Position(arrivalGeo.geometry.lat, arrivalGeo.geometry.lng));
+            GeoJsonResponse S1toS2 = geoJsonRequest(station1, station2, "cycling-road").Result;
 
-            GeoJsonResponse itineraire = JsonConvert.DeserializeObject<GeoJsonResponse>(OriginToS1.Result.ToString());
+            double durationTotal = OriginToS1.GetDuration() + S1toS2.GetDuration() + S2ToArrival.GetDuration();
 
-            var itineraireFinal = "Instructions : \n";
+            Position pOriginGeo = new Position(originGeo.geometry.lat, originGeo.geometry.lng);
+            Position pArrivalGeo = new Position(arrivalGeo.geometry.lat, arrivalGeo.geometry.lng);
 
-            foreach (var f in itineraire.Features)
+            GeoJsonResponse walkingOrignToArrival = geoJsonRequest(pOriginGeo, pArrivalGeo, "foot-walking").Result;
+
+            List<string> itineraire = new List<string>();
+
+
+            if (durationTotal > walkingOrignToArrival.GetDistance())
             {
-                foreach (var s in f.Properties.Segments)
-                {
-                    foreach (var st in s.Steps)
-                    {
-                        itineraireFinal += st.Instruction + "\n";
-                    }
-                }
-
+                itineraire.Add("Le trajet est plus simple à pieds \n Intructions : \n");
+                itineraire.Add(getItinairare(walkingOrignToArrival));
+            }
+            else
+            {
+                itineraire.Add("Le trajet est plus simple en vélo \n\n Intructions : \n\n");
+                itineraire.Add("- Marcher jusqu'a la station pour récuperer le vélo : \n\n");
+                itineraire.Add(getItinairare(OriginToS1));
+                itineraire.Add("- Pedaler jusqu'a la station pour déposer le vélo : \n\n");
+                itineraire.Add(getItinairare(S1toS2));
+                itineraire.Add("- Marcher jusqu'à la destination : \n\n");
+                itineraire.Add(getItinairare(S2ToArrival));
             }
 
-            return itineraireFinal;
+            return itineraire;
         }
     }
 }

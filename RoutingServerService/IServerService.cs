@@ -13,6 +13,6 @@ namespace RoutingServerService
     {
 
         [OperationContract]
-        string findWay(String addressStart, String addressEnd);
+        List<String> findWay(String addressStart, String addressEnd);
     }
 }

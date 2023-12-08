@@ -8,49 +8,61 @@ namespace RoutingServerService
 {
     public class GeoJsonResponse
     {
-        public Metadata Metadata { get; set; }
-        public List<Feature> Features { get; set; }
+        public Metadata metadata { get; set; }
+        public List<Feature> features { get; set; }
+        public List<double> bbox { get; set; }
 
+        public double GetDistance()
+        {
+            return features[0].properties.segments[0].distance;
+        }
+
+        public double GetDuration()
+        {
+            return features[0].properties.segments[0].duration;
+        }
 
     }
 
     public class Metadata
     {
-        public Query Query { get; set; }
+        public Query query { get; set; }
 
     }
     public class Query
     {
-        public List<List<double>> Coordinates { get; set; }
+        public List<List<double>> coordinates { get; set; }
     }
 
 
     public class Feature
     {
-        public Properties Properties { get; set; }
+        public Properties properties { get; set; }
     }
 
     public class Properties
     {
-        public List<Segment> Segments { get; set; }
+        public List<Segment> segments { get; set; }
     }
 
     public class Segment
     {
-        public double Distance { get; set; }
+        public double distance { get; set; }
 
-        public double Duration { get; set; }
+        public double duration { get; set; }
 
-        public List<Step> Steps { get; set; }
+        public List<Step> steps { get; set; }
+
+
     }
 
     public class Step
     {
-        public double Distance { get; set; }
+        public double distance { get; set; }
 
-        public double Duration { get; set; }
+        public double duration { get; set; }
 
-        public string Instruction { get; set; }
-        public List<int> WayPoints { get; set; }
+        public string instruction { get; set; }
+        public List<int> wayPoints { get; set; }
     }
 }
