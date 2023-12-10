@@ -1,5 +1,4 @@
 package com.soap.ws.client.exec;
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,11 +23,6 @@ import org.jxmapviewer.viewer.TileFactoryInfo;
 import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
-/**
- * A simple sample application that shows
- * a OSM map of Europe containing a route with waypoints
- * @author Martin Steiger
- */
 public class Map implements Runnable
 {
     ValueTupleOfstringArrayOfstringArrayOfArrayOfArrayOfdoublejpFD8EcM points;

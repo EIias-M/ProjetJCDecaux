@@ -15,6 +15,7 @@ import org.apache.activemq.command.ActiveMQQueue;
 
 public class Main {
 
+
         public static void main(String[] args) {
 
             ServerService serverService = new ServerService();
@@ -59,31 +60,29 @@ public class Main {
 
 
 
-            boolean encore = true;
-            //boucle tant que la queue n'est pas vide
-            while(encore) {
+            boolean loop = true;
+            while(loop) {
                 Thread.sleep(ms);
-                Message message = consumer.receive(); // Cette méthode bloque jusqu'à ce qu'un message soit reçu
+                Message message = consumer.receive();
                 //affichage du message
                 if (message instanceof TextMessage) {
                     TextMessage textMessage = (TextMessage) message;
                     String receivedMessage = textMessage.getText();
-                    //si la string contient fin du trajet alors c'est le dernier message.
                     if(receivedMessage.contains("Fin du trajet.")){
-                        encore = false;
+                        loop = false;
                     }else {
                         System.out.println(receivedMessage);
                     }
                 }
             }
-            //on ferme tout
+
             consumer.close();
             connection.close();
+
         } catch (Exception ex) {
-            //affichage de l'itineraire si activeMq indisponible
+
             withoutActiveMQ(idQueue.getItem2().getString());
         }
-        //on détruit la queue qui est maintenant vide
         ActiveMQConnection conn = null;
         try {
             conn = (ActiveMQConnection) new ActiveMQConnectionFactory("tcp://localhost:61616").createConnection();

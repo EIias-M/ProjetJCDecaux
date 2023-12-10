@@ -18,13 +18,11 @@ namespace ProxyService
         {
             if (!cache.Contains(CacheItemName))
             {
-                Console.WriteLine("cache miss");
                 CacheItemPolicy policy = new CacheItemPolicy();
                 policy.AbsoluteExpiration = dt_default;
                 T obj = (T)Activator.CreateInstance(typeof(T), CacheItemName);
                 cache.Set(CacheItemName, obj, policy);
             }
-            Console.WriteLine("cache hit");
             return (T)cache.Get(CacheItemName);
         }
 

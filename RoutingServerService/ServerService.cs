@@ -22,7 +22,7 @@ namespace RoutingServerService
     {
         static readonly HttpClient client = new HttpClient();
         ProxyServiceClient proxy = new ProxyServiceClient();
-        private string API_KEY_OPEN_ROUTE = "5b3ce3597851110001cf62480848072d18c1483bbcc351f81c4da2d1";
+        private string API_KEY_OPEN_ROUTE = "5b3ce3597851110001cf6248ef7bd53f4e384bb1931823475d47e2ca";
         private string API_KEY_OPEN_CAGE = "d699e83b5f0e4357a51f1c7f676243d5";
 
         public async Task<String> getJSON(String url)
@@ -87,7 +87,6 @@ namespace RoutingServerService
             string formatteds2La = Position.format(p2.latitude);
             Uri baseAddress;
             baseAddress = new Uri("https://api.openrouteservice.org/v2/directions/" + mode + "?api_key=" + API_KEY_OPEN_ROUTE + "&start=" + formatteds1Lo + "," + formatteds1La + "&end=" + formatteds2Lo + "," + formatteds2La);
-            Console.WriteLine(baseAddress);
             using (var httpClient = new HttpClient { BaseAddress = baseAddress })
             {
                 httpClient.DefaultRequestHeaders.Clear();
@@ -141,7 +140,6 @@ namespace RoutingServerService
                 }
             }
 
-            Console.WriteLine(stat);
             if (originOrNot)
             {
                 return await geoJsonRequest(p1, stat.position, "foot-walking");
@@ -159,12 +157,15 @@ namespace RoutingServerService
             string country = result.components.country_code.ToUpper();
             Position p1 = new Position(result.geometry.lat, result.geometry.lng);
 
+            Console.WriteLine("Recherche du meilleur contrat");
+
             foreach (var contract in contracts)
             {
                 if (contract.country_code == country)
                 {
                     String res = await getJSON("https://api.jcdecaux.com/vls/v3/stations?contract=" + contract.name + "&apiKey=468da863308d1676f7ad103e93c424c778269301");
                     List<Station> tmp = System.Text.Json.JsonSerializer.Deserialize<List<Station>>(res);
+                    Console.WriteLine(".");
 
                     if (tmp.Count != 0)
                     {
