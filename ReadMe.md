@@ -4,7 +4,7 @@
 
 Pour lancer le serveur et le proxy/cache, il faut executer en mode administrateur le fichier *"Launch.bat"*
 
-Pour l'instant le client ne veut pas se lancer en executant le .jar, il faut alors l'ouvrir dans un projet Intellij (ou autres IDE).
+Le Java -jar, ne marche pas sur ma machine a cause de conflit de version de java. J'espère qu'il marche sur la votre.
 
 ## Comment fonctionne le projet ?
 
