@@ -44,13 +44,13 @@ namespace ProxyService
 
         public string getContracts()
         {
-            string responseAllContracts = getResponse(JCD_API_URL_CONTRACT + "?apiKey=" + API_KEY);
+            string responseAllContracts = cache.Get("allContracts", 500).getAllContracts();
             return responseAllContracts;
         }
 
         public string getAllStationsOfAContract(string chosenContract)
         {
-            string stations = cache.Get(chosenContract).getStations();
+            string stations = cache.Get(chosenContract,500).getStations();
             return stations;
         }
     }

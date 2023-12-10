@@ -13,12 +13,14 @@ namespace ProxyService
         public string JCD_API_URL = "https://api.jcdecaux.com/vls/v3/";
         public string API_KEY = "e5a0ace90b1cc2c0e18643770d95469a446dc8c8";
         public static string allStationsOfAContract;
+        public static string allContracts;
         public string contractSelected;
 
         public JCDecauxItem(string contractSelected)
         {
             this.contractSelected = contractSelected;
             allStationsOfAContract = communicate(JCD_API_URL + "stations?contract=" + contractSelected + "&apiKey=" + API_KEY).Result;
+            allContracts = communicate(JCD_API_URL + "contracts?apiKey=" + API_KEY).Result;
 
         }
 
@@ -40,6 +42,12 @@ namespace ProxyService
         {
             Console.WriteLine("getStations");
             return allStationsOfAContract;
+        }
+
+        public string getAllContracts()
+        {
+            Console.WriteLine("getAllContracts");
+            return allContracts;
         }
 
         public string getContract()

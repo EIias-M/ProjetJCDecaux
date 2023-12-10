@@ -79,14 +79,16 @@ public class Map implements Runnable
         Set<Waypoint> waypoints = new HashSet<>();
 
         int i = 0;
+        int count = 0;
         DefaultWaypoint suppr = null;
         for(ArrayOfArrayOfdouble gs : points.getItem3().getArrayOfArrayOfdouble()) {
             for (ArrayOfdouble g : gs.getArrayOfdouble()) {
                 GeoPosition p = new GeoPosition(g.getDouble().get(1), g.getDouble().get(0));
                 track.add(p);
 
-                if (g == gs.getArrayOfdouble().get(0)){
+                if (g == gs.getArrayOfdouble().get(0) || g == gs.getArrayOfdouble().get(gs.getArrayOfdouble().size() - 1)){
                     i++;
+                    count++;
                     DefaultWaypoint wp = new DefaultWaypoint(p);
                     waypoints.add(wp);
                     if (i == 2) {
@@ -96,7 +98,12 @@ public class Map implements Runnable
 
             }
         }
-        waypoints.remove(suppr);
+
+        System.out.println(count);
+
+        if(count>2){
+            waypoints.remove(suppr);
+        }
         RoutePainter routePainter = new RoutePainter(track);
 
         // Set the focus
