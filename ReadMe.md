@@ -44,16 +44,12 @@ Ces deux listes sont envoyées dans une méthode *activeMQ()* qui permet d'initi
 
 ### Coté proxy/cache :
 
-Le proxy regarde dans son cache si le contrat demandé a déjà été demander et enregistrer. 
+Le proxy regarde dans son cache si le contrat demandé a déjà été demandé est enregistré. 
 
 Si c'est le cas il renvoie ce qu'il a dans son cache.
 Sinon il fait une requête à l'API JCDecaux avec le contrat demandé.
 
 Remarque :
-
-Le proxy interroge son cache seulement pour demander la liste des stations d'un contrat spécifique.
-
-Pour récupérer la liste des contrats, il fait une requête directement à JCDecaux.
 
 Le proxy desérialise directement le Json pour envoyer un objet au serveur.
 
